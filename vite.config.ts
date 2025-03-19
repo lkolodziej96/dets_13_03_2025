@@ -20,6 +20,7 @@ function hexLoader(): Plugin {
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react(), hexLoader()],
+  base: '/dets_13_03_2025/',
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
