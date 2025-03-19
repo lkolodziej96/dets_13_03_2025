@@ -1,3 +1,5 @@
+import * as XLSX from 'xlsx';
+
 import type { CountryData, SectorWeights } from '../types';
 import { validateAndProcessData, standardizeCountryNames } from './dataValidation';
 
@@ -47,4 +49,41 @@ export function processExcelData(rawData: any[], weights: SectorWeights): Countr
 export function calculateColorIntensity(value: number, max: number): string {
   const intensity = Math.max(0, Math.min(0.9, value / max));
   return `rgba(34, 197, 94, ${intensity})`;
+}
+
+export function parseXlsxData(buffer: ArrayBuffer) {
+  const workbook = XLSX.read(buffer, { type: 'array' });
+  const sheetName = workbook.SheetNames[0];
+  const worksheet = workbook.Sheets[sheetName];
+
+  // Get the range of the worksheet
+  const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
+
+  // Extract headers (sectors) from the first row
+  const headers: string[] = [];
+  for (let C = range.s.c + 1; C <= range.e.c; C++) {
+    const cell = worksheet[XLSX.utils.encode_cell({ r: range.s.r, c: C })];
+    headers.push(cell?.v || '');
+  }
+
+  // Process each row into an object
+  const jsonData = [];
+  for (let R = range.s.r + 1; R <= range.e.r; R++) {
+    const countryCell = worksheet[XLSX.utils.encode_cell({ r: R, c: range.s.c })];
+    if (!countryCell) continue;
+
+    const row: any = {
+      Country: countryCell.v,
+    };
+
+    // Get values for each sector
+    headers.forEach((header, index) => {
+      const cell = worksheet[XLSX.utils.encode_cell({ r: R, c: index + 1 })];
+      row[header] = cell ? Number(cell.v) : 0;
+    });
+
+    jsonData.push(row);
+  }
+
+  return jsonData;
 }

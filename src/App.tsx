@@ -1,15 +1,18 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Upload } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import * as XLSX from 'xlsx';
+
 import WorldMap from './components/WorldMap';
 import BarChart from './components/BarChart';
 import PieChart from './components/PieChart';
 import DataTable from './components/DataTable';
 import SectorWeights from './components/SectorWeights';
-import { processExcelData } from './utils/dataProcessing';
+import { parseXlsxData, processExcelData } from './utils/dataProcessing';
 import { defaultSectorWeights } from './utils/constants';
 import type { CountryData, SectorWeights as SectorWeightsType } from './types';
+
+import { BUILD_IN_XML } from './resources/index';
 
 function App() {
   const [rawData, setRawData] = useState<any[]>([]);
@@ -18,6 +21,28 @@ function App() {
   const [selectedSector, setSelectedSector] = useState<string | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const jsonData = parseXlsxData(BUILD_IN_XML);
+
+      setRawData(jsonData);
+      const processedData = processExcelData(jsonData, sectorWeights);
+
+      if (processedData.length === 0) {
+        setError('Failed to process data. Please check the file format and try again.');
+        return;
+      }
+
+      setData(processedData);
+      setError(null);
+    } catch (err) {
+      console.error('File processing error:', err);
+      setError(
+        'Error reading file. Please ensure it is a valid Excel file with the correct format.',
+      );
+    }
+  }, []);
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
