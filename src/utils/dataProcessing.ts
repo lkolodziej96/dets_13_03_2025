@@ -20,14 +20,14 @@ export function processExcelData(rawData: any[], weights: SectorWeights): Countr
     const standardizedData = standardizeCountryNames(validatedData);
 
     // Apply weights and calculate scores
-    return standardizedData.map(country => {
+    return standardizedData.map((country) => {
       const sectorScores = {
         ai: parseFloat(country.ai) * weights.ai,
         quantum: parseFloat(country.quantum) * weights.quantum,
         semiconductors: parseFloat(country.semiconductors) * weights.semiconductors,
         biotech: parseFloat(country.biotech) * weights.biotech,
         space: parseFloat(country.space) * weights.space,
-        fintech: parseFloat(country.fintech) * weights.fintech
+        fintech: parseFloat(country.fintech) * weights.fintech,
       };
 
       const totalScore = Object.values(sectorScores).reduce((sum, score) => sum + score, 0);
@@ -35,7 +35,7 @@ export function processExcelData(rawData: any[], weights: SectorWeights): Countr
       return {
         ...country,
         totalScore,
-        sectorScores
+        sectorScores,
       };
     });
   } catch (error) {

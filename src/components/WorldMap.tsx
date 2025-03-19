@@ -16,12 +16,7 @@ interface CountryOption {
   label: string;
 }
 
-const WorldMap: React.FC<Props> = ({ 
-  data, 
-  selectedSector, 
-  selectedCountry,
-  onCountrySelect 
-}) => {
+const WorldMap: React.FC<Props> = ({ data, selectedSector, selectedCountry, onCountrySelect }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const zoomRef = useRef<d3.ZoomBehavior<Element, unknown>>();
@@ -30,18 +25,20 @@ const WorldMap: React.FC<Props> = ({
 
   const countryOptions = useMemo(() => {
     return data
-      .map(country => ({
+      .map((country) => ({
         value: country.country,
-        label: country.country
+        label: country.country,
       }))
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [data]);
 
   const selectedOption = useMemo(() => {
-    return selectedCountry ? {
-      value: selectedCountry,
-      label: selectedCountry
-    } : null;
+    return selectedCountry
+      ? {
+          value: selectedCountry,
+          label: selectedCountry,
+        }
+      : null;
   }, [selectedCountry]);
 
   const handleZoom = (action: 'in' | 'out' | 'reset') => {
@@ -51,19 +48,12 @@ const WorldMap: React.FC<Props> = ({
     const zoom = zoomRef.current;
 
     if (action === 'reset') {
-      svg.transition()
-        .duration(750)
-        .call(zoom.transform, d3.zoomIdentity);
+      svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
     } else {
       const scale = action === 'in' ? 1.5 : 0.667;
       const currentTransform = d3.zoomTransform(svg.node()!);
-      
-      svg.transition()
-        .duration(750)
-        .call(
-          zoom.transform,
-          currentTransform.scale(scale)
-        );
+
+      svg.transition().duration(750).call(zoom.transform, currentTransform.scale(scale));
     }
   };
 
@@ -77,8 +67,8 @@ const WorldMap: React.FC<Props> = ({
     const height = 400;
 
     // Find the selected country's feature
-    const feature = featuresRef.current.find(f => f.properties.name === countryName);
-    
+    const feature = featuresRef.current.find((f) => f.properties.name === countryName);
+
     if (feature) {
       // Get the bounds of the country
       const bounds = path.bounds(feature);
@@ -86,25 +76,19 @@ const WorldMap: React.FC<Props> = ({
       const dy = bounds[1][1] - bounds[0][1];
       const x = (bounds[0][0] + bounds[1][0]) / 2;
       const y = (bounds[0][1] + bounds[1][1]) / 2;
-      
+
       // Calculate the scale and translate parameters
       const scale = Math.min(8, 0.9 / Math.max(dx / width, dy / height));
       const translate = [width / 2 - scale * x, height / 2 - scale * y];
-      
+
       // Apply the transformation
-      svg.transition()
+      svg
+        .transition()
         .duration(750)
-        .call(
-          zoom.transform,
-          d3.zoomIdentity
-            .translate(translate[0], translate[1])
-            .scale(scale)
-        );
+        .call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale));
     } else {
       // If country not found, reset the view
-      svg.transition()
-        .duration(750)
-        .call(zoom.transform, d3.zoomIdentity);
+      svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
     }
   };
 
@@ -116,10 +100,11 @@ const WorldMap: React.FC<Props> = ({
     const svg = d3.select(svgRef.current);
 
     // Clear previous content
-    svg.selectAll("*").remove();
+    svg.selectAll('*').remove();
 
     // Create projection
-    const projection = d3.geoMercator()
+    const projection = d3
+      .geoMercator()
       .scale((width - 3) / (2 * Math.PI))
       .translate([width / 2, height / 2]);
 
@@ -127,35 +112,36 @@ const WorldMap: React.FC<Props> = ({
     geoPathRef.current = path;
 
     // Create main group for map content
-    const g = svg.append("g");
+    const g = svg.append('g');
 
     // Create tooltip
-    const tooltip = d3.select(tooltipRef.current)
-      .style("position", "fixed")
-      .style("visibility", "hidden")
-      .style("background-color", "white")
-      .style("padding", "8px 12px")
-      .style("border", "1px solid #ddd")
-      .style("border-radius", "4px")
-      .style("box-shadow", "0 2px 4px rgba(0,0,0,0.1)")
-      .style("font-size", "14px")
-      .style("pointer-events", "none")
-      .style("z-index", "1000");
+    const tooltip = d3
+      .select(tooltipRef.current)
+      .style('position', 'fixed')
+      .style('visibility', 'hidden')
+      .style('background-color', 'white')
+      .style('padding', '8px 12px')
+      .style('border', '1px solid #ddd')
+      .style('border-radius', '4px')
+      .style('box-shadow', '0 2px 4px rgba(0,0,0,0.1)')
+      .style('font-size', '14px')
+      .style('pointer-events', 'none')
+      .style('z-index', '1000');
 
     // Load world map data
     fetch('https://unpkg.com/world-atlas@2.0.2/countries-110m.json')
-      .then(response => response.json())
-      .then(worldData => {
+      .then((response) => response.json())
+      .then((worldData) => {
         const countries = feature(worldData, worldData.objects.countries);
         featuresRef.current = countries.features;
 
         // Calculate max score for color scaling
-        const maxScore = d3.max(data, d => 
-          selectedSector ? d.sectorScores[selectedSector] : d.totalScore
-        ) || 0;
+        const maxScore =
+          d3.max(data, (d) => (selectedSector ? d.sectorScores[selectedSector] : d.totalScore)) ||
+          0;
 
         // Create a map of country names to their data for faster lookup
-        const countryDataMap = new Map(data.map(d => [d.country, d]));
+        const countryDataMap = new Map(data.map((d) => [d.country, d]));
 
         // Draw map
         g.selectAll('path')
@@ -166,9 +152,9 @@ const WorldMap: React.FC<Props> = ({
           .attr('fill', (d: any) => {
             const countryData = countryDataMap.get(d.properties.name);
             if (!countryData) return '#e2e8f0';
-            const score = selectedSector ? 
-              countryData.sectorScores[selectedSector] : 
-              countryData.totalScore;
+            const score = selectedSector
+              ? countryData.sectorScores[selectedSector]
+              : countryData.totalScore;
             return calculateColorIntensity(score, maxScore);
           })
           .attr('stroke', '#cbd5e0')
@@ -191,17 +177,15 @@ const WorldMap: React.FC<Props> = ({
           .on('mouseover', (event, d: any) => {
             const countryData = countryDataMap.get(d.properties.name);
             if (countryData) {
-              tooltip
-                .style("visibility", "visible")
-                .html(`
+              tooltip.style('visibility', 'visible').html(`
                   <div class="font-semibold">${countryData.country}</div>
                   <div>Total Score: ${countryData.totalScore.toFixed(3)}</div>
-                  ${selectedSector ? 
-                    `<div>${selectedSector}: ${countryData.sectorScores[selectedSector].toFixed(3)}</div>` :
-                    Object.entries(countryData.sectorScores)
-                      .map(([sector, score]) => 
-                        `<div>${sector}: ${score.toFixed(3)}</div>`
-                      ).join('')
+                  ${
+                    selectedSector
+                      ? `<div>${selectedSector}: ${countryData.sectorScores[selectedSector].toFixed(3)}</div>`
+                      : Object.entries(countryData.sectorScores)
+                          .map(([sector, score]) => `<div>${sector}: ${score.toFixed(3)}</div>`)
+                          .join('')
                   }
                 `);
 
@@ -217,31 +201,29 @@ const WorldMap: React.FC<Props> = ({
             const tooltipNode = tooltip.node() as HTMLDivElement;
             const tooltipWidth = tooltipNode.offsetWidth;
             const tooltipHeight = tooltipNode.offsetHeight;
-            
+
             let left = mouseX + 16;
             let top = mouseY - tooltipHeight / 2;
-            
+
             if (left + tooltipWidth > window.innerWidth) {
               left = mouseX - tooltipWidth - 16;
             }
-            
+
             if (top < 0) {
               top = 0;
             } else if (top + tooltipHeight > window.innerHeight) {
               top = window.innerHeight - tooltipHeight;
             }
-            
-            tooltip
-              .style("left", `${left}px`)
-              .style("top", `${top}px`);
+
+            tooltip.style('left', `${left}px`).style('top', `${top}px`);
           })
           .on('mouseout', (event) => {
-            tooltip.style("visibility", "hidden");
-            
+            tooltip.style('visibility', 'hidden');
+
             d3.select(event.currentTarget)
               .transition()
               .duration(200)
-              .attr('stroke-width', d => {
+              .attr('stroke-width', (d) => {
                 const isSelected = selectedCountry === (d as any).properties.name;
                 return isSelected ? 2 : 0.5;
               })
@@ -249,7 +231,8 @@ const WorldMap: React.FC<Props> = ({
           });
 
         // Add zoom behavior
-        const zoom = d3.zoom()
+        const zoom = d3
+          .zoom()
           .scaleExtent([1, 8])
           .on('zoom', (event) => {
             g.attr('transform', event.transform);
@@ -283,7 +266,7 @@ const WorldMap: React.FC<Props> = ({
           isClearable
           placeholder="Search for a country..."
           classNames={{
-            control: (state) => 
+            control: (state) =>
               `!bg-white !border-gray-300 !shadow-sm hover:!border-gray-400 ${
                 state.isFocused ? '!border-blue-500 !ring-1 !ring-blue-500' : ''
               }`,
@@ -292,8 +275,8 @@ const WorldMap: React.FC<Props> = ({
                 state.isSelected
                   ? '!bg-blue-500 !text-white'
                   : state.isFocused
-                  ? '!bg-blue-50 !text-gray-900'
-                  : '!text-gray-700'
+                    ? '!bg-blue-50 !text-gray-900'
+                    : '!text-gray-700'
               }`,
           }}
         />
@@ -327,7 +310,7 @@ const WorldMap: React.FC<Props> = ({
           width="100%"
           height="400"
           className="bg-gray-50"
-          style={{ overflow: "hidden" }}
+          style={{ overflow: 'hidden' }}
         />
         <div ref={tooltipRef} />
       </div>

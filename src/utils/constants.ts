@@ -4,7 +4,7 @@ export const defaultSectorWeights = {
   semiconductors: 0.2,
   biotech: 0.2,
   space: 0.2,
-  fintech: 0.1
+  fintech: 0.1,
 };
 
 export const sectorColors = {
@@ -13,7 +13,7 @@ export const sectorColors = {
   semiconductors: '#ED8936',
   biotech: '#9F7AEA',
   space: '#F56565',
-  fintech: '#38B2AC'
+  fintech: '#38B2AC',
 };
 
 export const sectorNames = {
@@ -22,5 +22,5 @@ export const sectorNames = {
   semiconductors: 'Semiconductors',
   biotech: 'Biotech',
   space: 'Space',
-  fintech: 'Fintech'
+  fintech: 'Fintech',
 };

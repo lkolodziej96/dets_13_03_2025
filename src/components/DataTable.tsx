@@ -15,12 +15,8 @@ const DataTable: React.FC<Props> = ({ data, selectedSector, selectedCountry }) =
 
   const sortedData = React.useMemo(() => {
     const sorted = [...data].sort((a, b) => {
-      const aValue = sortField === 'totalScore' ? 
-        a.totalScore : 
-        a.sectorScores[sortField];
-      const bValue = sortField === 'totalScore' ? 
-        b.totalScore : 
-        b.sectorScores[sortField];
+      const aValue = sortField === 'totalScore' ? a.totalScore : a.sectorScores[sortField];
+      const bValue = sortField === 'totalScore' ? b.totalScore : b.sectorScores[sortField];
       return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
     });
     return sorted;
@@ -28,7 +24,7 @@ const DataTable: React.FC<Props> = ({ data, selectedSector, selectedCountry }) =
 
   const handleSort = (field: string) => {
     if (field === sortField) {
-      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortField(field);
       setSortDirection('desc');
@@ -37,11 +33,14 @@ const DataTable: React.FC<Props> = ({ data, selectedSector, selectedCountry }) =
 
   const maxScores = React.useMemo(() => {
     const scores = {
-      totalScore: Math.max(...data.map(d => d.totalScore)),
-      ...Object.keys(data[0].sectorScores).reduce((acc, sector) => ({
-        ...acc,
-        [sector]: Math.max(...data.map(d => d.sectorScores[sector]))
-      }), {})
+      totalScore: Math.max(...data.map((d) => d.totalScore)),
+      ...Object.keys(data[0].sectorScores).reduce(
+        (acc, sector) => ({
+          ...acc,
+          [sector]: Math.max(...data.map((d) => d.sectorScores[sector])),
+        }),
+        {},
+      ),
     };
     return scores;
   }, [data]);
@@ -51,14 +50,14 @@ const DataTable: React.FC<Props> = ({ data, selectedSector, selectedCountry }) =
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            <th 
+            <th
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
               onClick={() => handleSort('country')}
             >
               Country
             </th>
-            {Object.keys(data[0].sectorScores).map(sector => (
-              <th 
+            {Object.keys(data[0].sectorScores).map((sector) => (
+              <th
                 key={sector}
                 className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 ${
                   selectedSector && selectedSector !== sector ? 'opacity-50' : ''
@@ -68,7 +67,7 @@ const DataTable: React.FC<Props> = ({ data, selectedSector, selectedCountry }) =
                 {sectorNames[sector]}
               </th>
             ))}
-            <th 
+            <th
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
               onClick={() => handleSort('totalScore')}
             >
@@ -78,7 +77,7 @@ const DataTable: React.FC<Props> = ({ data, selectedSector, selectedCountry }) =
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {sortedData.map((country) => (
-            <tr 
+            <tr
               key={country.country}
               className={`hover:bg-gray-50 ${
                 selectedCountry === country.country ? 'bg-blue-50' : ''
@@ -88,22 +87,25 @@ const DataTable: React.FC<Props> = ({ data, selectedSector, selectedCountry }) =
                 {country.country}
               </td>
               {Object.entries(country.sectorScores).map(([sector, score]) => (
-                <td 
+                <td
                   key={sector}
                   className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 ${
                     selectedSector && selectedSector !== sector ? 'opacity-50' : ''
                   }`}
                   style={{
-                    backgroundColor: calculateColorIntensity(score, maxScores[sector])
+                    backgroundColor: calculateColorIntensity(score, maxScores[sector]),
                   }}
                 >
                   {score.toFixed(3)}
                 </td>
               ))}
-              <td 
+              <td
                 className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
                 style={{
-                  backgroundColor: calculateColorIntensity(country.totalScore, maxScores.totalScore)
+                  backgroundColor: calculateColorIntensity(
+                    country.totalScore,
+                    maxScores.totalScore,
+                  ),
                 }}
               >
                 {country.totalScore.toFixed(3)}
